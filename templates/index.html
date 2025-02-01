@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Doc Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="light-mode">
+    <button class="settings-btn" onclick="openSettings()">
+        ⚙️
+    </button>
+
+    <button class="mode-toggle" onclick="toggleMode()">🌙</button>
+
+    <div class="container">
+        <h1>Google Doc Generator</h1>
+        <p>Enter a company name to generate a professional Google Doc.</p>
+        <input type="text" id="companyName" class="input-field" placeholder="Enter Company Name">
+        
+        <!-- Checklist for Sections -->
+        <div class="checklist">
+            <button onclick="toggleSelectAll()" class="select-all-btn">Select All</button>
+            <label><input type="checkbox" name="sections" value="overview" checked> Company Overview</label>
+            <label><input type="checkbox" name="sections" value="ticker"> Ticker Symbol</label>
+            <label><input type="checkbox" name="sections" value="market_cap"> Market Cap & Revenue</label>
+            <label><input type="checkbox" name="sections" value="headquarters"> Headquarters Location</label>
+            <label><input type="checkbox" name="sections" value="employees"> Number of Employees</label>
+            <label><input type="checkbox" name="sections" value="support"> Customer Support System</label>
+        </div>
+
+        <button onclick="generateDocument()">Generate Document</button>
+        <div id="responseMessage"></div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <svg class="loading-svg" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Add your SVG paths here -->
+            <path d="M720 450C720 450 742.459 440.315 755.249 425.626C768.039 410.937 778.88 418.741 789.478 401.499C800.076 384.258 817.06 389.269 826.741 380.436C836.423 371.603 851.957 364.826 863.182 356.242C874.408 347.657 877.993 342.678 898.867 333.214C919.741 323.75 923.618 319.88 934.875 310.177C946.133 300.474 960.784 300.837 970.584 287.701C980.384 274.564 993.538 273.334 1004.85 263.087C1016.15 252.84 1026.42 250.801 1038.22 242.1C1050.02 233.399 1065.19 230.418 1074.63 215.721C1084.07 201.024 1085.49 209.128 1112.65 194.884C1139.8 180.64 1132.49 178.205 1146.43 170.636C1160.37 163.066 1168.97 158.613 1181.46 147.982C1193.95 137.35 1191.16 131.382 1217.55 125.645C1243.93 119.907 1234.19 118.899 1254.53 100.846C1274.86 82.7922 1275.12 92.8914 1290.37 76.09C1305.62 59.2886 1313.91 62.1868 1323.19 56.7536C1332.48 51.3204 1347.93 42.8082 1361.95 32.1468C1375.96 21.4855 1374.06 25.168 1397.08 10.1863C1420.09 -4.79534 1421.41 -3.16992 1431.52 -15.0078" stroke="#46A5CA" stroke-width="2.3" stroke-linecap="round" />
+            <!-- Add more paths as needed -->
+        </svg>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2>Settings</h2>
+            <input type="text" id="apiKey" class="input-field" placeholder="Enter ChatGPT API Key">
+            <button class="save-btn" onclick="saveApiKey()">Save</button>
+            <p id="googleStatus">Google Docs Connection: <span id="googleStatusText">Checking...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Load saved API key on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            const savedApiKey = localStorage.getItem("chatgpt_api_key");
+            if (savedApiKey) {
+                document.getElementById("apiKey").value = savedApiKey;
+            }
+        });
+
+        function openSettings() {
+            document.getElementById("settingsModal").style.display = "flex";
+            checkGoogleConnection();
+        }
+
+        function closeSettings() {
+            document.getElementById("settingsModal").style.display = "none";
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById("apiKey").value;
+            if (!apiKey) {
+                alert("Please enter an API key.");
+                return;
+            }
+            localStorage.setItem("chatgpt_api_key", apiKey);
+            alert("API Key saved successfully!");
+            closeSettings();
+        }
+
+        function getApiKey() {
+            return localStorage.getItem("chatgpt_api_key") || "";
+        }
+
+        function checkGoogleConnection() {
+            fetch("/check-google-connection")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("googleStatusText").textContent = data.connected ? "Connected" : "Not Connected";
+                })
+                .catch(error => {
+                    console.error("Error checking Google connection:", error);
+                    document.getElementById("googleStatusText").textContent = "Error";
+                });
+        }
+
+        function generateDocument() {
+            const companyName = document.getElementById("companyName").value;
+            const apiKey = getApiKey();
+
+            if (!companyName) {
+                alert("Please enter a company name");
+                return;
+            }
+
+            if (!apiKey) {
+                alert("Please set your ChatGPT API key in settings.");
+                return;
+            }
+
+            // Show loading overlay
+            const loadingOverlay = document.getElementById("loadingOverlay");
+            loadingOverlay.style.display = "flex";
+
+            // Get selected sections
+            const checkboxes = document.querySelectorAll('input[name="sections"]:checked');
+            const sections = Array.from(checkboxes).map(cb => cb.value);
+
+            fetch("/generate", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({ 
+                    company_name: companyName,
+                    sections: sections 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("responseMessage").innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    document.getElementById("responseMessage").innerHTML = `<p style="color: green;">${data.message}</p>
+                        <a href="${data.doc_url}" target="_blank">View Google Doc</a>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").innerHTML = `<p style="color: red;">An error occurred. Please try again. :(</p>`;
+            })
+            .finally(() => {
+                // Hide loading overlay
+                loadingOverlay.style.display = "none";
+            });
+        }
+
+        function toggleMode() {
+            const body = document.body;
+            if (body.classList.contains("light-mode")) {
+                body.classList.remove("light-mode");
+                body.classList.add("dark-mode");
+                document.querySelector(".mode-toggle").textContent = "☀️";
+                document.getElementById("loadingOverlay").classList.add("dark-mode");
+            } else {
+                body.classList.remove("dark-mode");
+                body.classList.add("light-mode");
+                document.querySelector(".mode-toggle").textContent = "🌙";
+                document.getElementById("loadingOverlay").classList.remove("dark-mode");
+            }
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('input[name="sections"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+        }
+    </script>
+</body>
+</html>
