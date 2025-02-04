@@ -41,6 +41,7 @@ def fetch_company_details(company_name, details, api_key):
     try:
         client = OpenAI(api_key=api_key)
         
+        # Collect details based on user input
         selected_details = []
         if details.get("overview"):
             selected_details.append("Company Overview")
@@ -54,18 +55,42 @@ def fetch_company_details(company_name, details, api_key):
             selected_details.append("Number of Employees")
         if details.get("support"):
             selected_details.append("Customer Support System Overview")
+        if details.get("contacts"):
+            selected_details.append("Contact Information (Phone, Email, Social Media)")
 
-        prompt = f"Provide a detailed overview of {company_name} including: {', '.join(selected_details)}."
+        # Construct the Facebook search query for email and phone
+        facebook_query = f'site:Facebook.com "{company_name}" "USA" "@gmail.com"'
+
+        prompt = f"""
+        Provide a comprehensive, detailed, and well-organized overview of {company_name} in details, including the following:
+
+        {', '.join(selected_details)}. Each section should be labeled clearly, and any missing information should be stated explicitly. 
+
+        The contact section should include the following information in a structured format:
+
+        | Phone Number | Email Address | Location | Website | Instagram | Facebook | LinkedIn | X (Twitter) |
+
+        Include the following simulated search results for the query:
+        "{facebook_query}" as if you searched it on Facebook. Even though you cannot directly access Facebook, please construct a realistic set of results that would include email addresses, phone numbers, and social media links. 
+
+        If information is missing or unavailable, please clearly indicate this. Be sure to include only relevant details for lead generation.
+
+        Please use emojis to enhance readability and engagement, especially for contact information. For example, add a 📧 for emails, 📱 for phone numbers, and 🔗 for social media links. 
+
+        Also, format the data into 3 pages with well-organized sections, so it is clear and easy to navigate.
+        """
         
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="chatgpt-40-latest",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=500
+            max_tokens=9000,  
         )
+        
         return response.choices[0].message.content or "No details available"
     
     except Exception as e:
         return f"Error: {str(e)}"
+
 
 # Create Google Doc
 def create_google_doc(company_name, content):
@@ -102,4 +127,4 @@ def generate():
     return jsonify({"message": "Google Doc created successfully!", "doc_url": doc_url})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
