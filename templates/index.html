@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body class="light-mode">
+    <nav>
+        <div class="nav-container">
+            <img src="/static/logo.png" alt="AWK Limited Logo" class="logo">
+            <ul class="nav-links">
+                <li><a href="https://doc-gpt-webapp.vercel.app/">Home</a></li>
+                <li><a href="https://random26blogs.com/">Blog</a></li>
+                <li><a href="https://599-wahab.github.io/AWK/">About</a></li>
+            </ul>
+        </div>
+    </nav>
     <button class="settings-btn" onclick="openSettings()">
         ⚙️
     </button>
@@ -52,6 +62,16 @@
             <p id="googleStatus">Google Docs Connection: <span id="googleStatusText">Checking...</span></p>
         </div>
     </div>
+
+    <footer>
+        <div class="footer-content">
+            <h3href="https://599-wahab.github.io/AWK/">AWK Limited</h3>
+            <p>Abdul Wahab Naseer</p>
+            <div class="copyright">
+                &copy; <span id="currentYear"></span> AWK Limited. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
     <script>
         // Load saved API key on page load
