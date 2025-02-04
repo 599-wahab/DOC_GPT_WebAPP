@@ -310,7 +310,17 @@ body.dark-mode {
     }
 
     .container {
-        margin-top: 120px;
+        margin-top: 200px;
         width: 90%;
+    }
+
+    .mode-toggle {
+        position: absolute;
+        top: 200px;
+    }
+
+    .settings-btn {
+        position: absolute;
+        top: 200px;
     }
 }
