@@ -316,11 +316,13 @@ body.dark-mode {
 
     .mode-toggle {
         position: absolute;
-        top: 200px;
+        top: 80px;
+        z-index: 1001;
     }
 
     .settings-btn {
         position: absolute;
-        top: 200px;
+        top: 80px;
+        z-index: 1001;
     }
 }
