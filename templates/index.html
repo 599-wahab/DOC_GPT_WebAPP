@@ -8,6 +8,7 @@
 </head>
 <body class="light-mode">
     <nav>
+        
         <div class="nav-container">
             <img src="/static/logo.png" alt="AWK Limited Logo" class="logo">
             <ul class="nav-links">
@@ -30,13 +31,20 @@
         
         <!-- Checklist for Sections -->
         <div class="checklist">
-            <button onclick="toggleSelectAll()" class="select-all-btn">Select All</button>
-            <label><input type="checkbox" name="sections" value="overview" checked> Company Overview</label>
-            <label><input type="checkbox" name="sections" value="ticker"> Ticker Symbol</label>
-            <label><input type="checkbox" name="sections" value="market_cap"> Market Cap & Revenue</label>
-            <label><input type="checkbox" name="sections" value="headquarters"> Headquarters Location</label>
-            <label><input type="checkbox" name="sections" value="employees"> Number of Employees</label>
-            <label><input type="checkbox" name="sections" value="support"> Customer Support System</label>
+            <div class="basic-sections">
+                <label><input type="checkbox" name="overview" checked> Overview</label>
+                <label><input type="checkbox" name="ticker"> Ticker</label>
+                <label><input type="checkbox" name="market_cap"> Market Cap</label>
+                <label><input type="checkbox" name="headquarters"> HQ</label>
+                <label><input type="checkbox" name="employees"> Employees</label>
+            </div>
+            
+            <div class="advanced-section">
+                <label class="advanced-search">
+                    <input type="checkbox" name="advanced_search">
+                    🔍 Advanced Instagram Search
+                </label>
+            </div>
         </div>
 
         <button onclick="generateDocument()">Generate Document</button>
