@@ -25,7 +25,6 @@ def initialize_google_docs():
             token.write(creds.to_json())
     return build('docs', 'v1', credentials=creds)
 
-# Check Google Docs connection status
 @app.route('/check-google-connection')
 def check_google_connection():
     try:
@@ -36,20 +35,21 @@ def check_google_connection():
     except Exception as e:
         return jsonify({"connected": False, "error": str(e)})
 
-# Fetch company details using OpenAI API
 def fetch_company_details(company_name, details, api_key):
     try:
         client = OpenAI(api_key=api_key)
         
-        # Collect details based on user input
+        base_prompt = []
         selected_details = []
+        
+        # Base details
         if details.get("overview"):
             selected_details.append("Company Overview")
         if details.get("ticker"):
             selected_details.append("Ticker Symbol")
-        if details.get("marketCap"):
+        if details.get("market_cap"):
             selected_details.append("Market Cap & Revenue")
-        if details.get("hq"):
+        if details.get("headquarters"):
             selected_details.append("Headquarters Location")
         if details.get("employees"):
             selected_details.append("Number of Employees")
@@ -58,41 +58,53 @@ def fetch_company_details(company_name, details, api_key):
         if details.get("contacts"):
             selected_details.append("Contact Information (Phone, Email, Social Media)")
 
-        # Construct the Facebook search query for email and phone
-        facebook_query = f'site:Facebook.com "{company_name}" "USA" "@gmail.com"'
-
-        prompt = f"""
-        Provide a comprehensive, detailed, and well-organized overview of {company_name} in details, including the following:
-
-        {', '.join(selected_details)}. Each section should be labeled clearly, and any missing information should be stated explicitly. 
-
-        The contact section should include the following information in a structured format:
-
-        | Phone Number | Email Address | Location | Website | Instagram | Facebook | LinkedIn | X (Twitter) |
-
-        Include the following simulated search results for the query:
-        "{facebook_query}" as if you searched it on Facebook. Even though you cannot directly access Facebook, please construct a realistic set of results that would include email addresses, phone numbers, and social media links. 
-
-        If information is missing or unavailable, please clearly indicate this. Be sure to include only relevant details for lead generation.
-
-        Please use emojis to enhance readability and engagement, especially for contact information. For example, add a 📧 for emails, 📱 for phone numbers, and 🔗 for social media links. 
-
-        Also, format the data into 3 pages with well-organized sections, so it is clear and easy to navigate.
+        base_query = f"""
+        Provide a comprehensive overview of {company_name} including:
+        {', '.join(selected_details) if selected_details else 'basic company information'}.
+        Format with clear section headers and emojis for readability.
         """
         
-        response = client.chat.completions.create(
-            model="chatgpt-40-latest",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=9000,  
-        )
-        
-        return response.choices[0].message.content or "No details available"
+        base_response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": base_query}],
+            max_tokens=3000
+        ).choices[0].message.content
+
+        # Advanced Instagram Search
+        advanced_content = ""
+        if details.get("advanced_search"):
+            instagram_query = f'site:instagram.com "{company_name}" "United States" "@gmail.com"'
+            
+            advanced_prompt = f"""
+            Analyze simulated Instagram search results for: {instagram_query}
+            
+            Create a structured table containing:
+            - Profile Name (with Instagram link)
+            - Email Addresses (📧)
+            - Phone Numbers (📱)
+            - Location (📍)
+            - Key Keywords
+            
+            Format as:
+            | Profile | Email | Phone | Location | Keywords |
+            |---------|-------|-------|----------|----------|
+            [Add 10 realistic entries with some missing data]
+            
+            Include a disclaimer about data accuracy.
+            """
+            
+            advanced_response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": advanced_prompt}],
+                max_tokens=2000
+            )
+            advanced_content = "\n\n## 🔍 Advanced Instagram Search Results\n" + advanced_response.choices[0].message.content
+
+        return f"{base_response}{advanced_content}"
     
     except Exception as e:
         return f"Error: {str(e)}"
 
-
-# Create Google Doc
 def create_google_doc(company_name, content):
     if not content:
         return "Error: Content is empty."
@@ -112,10 +124,9 @@ def index():
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    # Get the API key from the Authorization header
     api_key = request.headers.get("Authorization", "").replace("Bearer ", "").strip()
     if not api_key:
-        return jsonify({"error": "No API key provided. Please enter your API key in settings."}), 400
+        return jsonify({"error": "API key required"}), 400
 
     data = request.json
     company_name = data.get("company_name")
@@ -124,7 +135,7 @@ def generate():
     company_details = fetch_company_details(company_name, details, api_key)
     doc_url = create_google_doc(company_name, company_details)
 
-    return jsonify({"message": "Google Doc created successfully!", "doc_url": doc_url})
+    return jsonify({"message": "Document created", "doc_url": doc_url})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
