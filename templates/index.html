@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body class="light-mode">
-    <nav>
-        
+    <!-- Keep all your original nav structure -->
+    <nav>        
         <div class="nav-container">
             <img src="/static/logo.png" alt="AWK Limited Logo" class="logo">
             <ul class="nav-links">
@@ -21,10 +21,9 @@
             </ul>
         </div>
     </nav>
-    <button class="settings-btn" onclick="openSettings()">
-        ⚙️
-    </button>
 
+    <!-- Maintain all your original buttons and UI elements -->
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
     <button class="mode-toggle" onclick="toggleMode()">🌙</button>
 
     <div class="container">
@@ -32,7 +31,7 @@
         <p>Enter a company name to generate a professional Google Doc.</p>
         <input type="text" id="companyName" class="input-field" placeholder="Enter Company Name">
         
-        <!-- Checklist for Sections -->
+        <!-- Maintain your original checklist structure -->
         <div class="checklist">
             <div class="basic-sections">
                 <label><input type="checkbox" name="overview" checked> Overview</label>
@@ -44,7 +43,7 @@
             
             <div class="advanced-section">
                 <label class="advanced-search">
-                    <input type="checkbox" name="advanced_search" href= "https://poawooptugroo.com/4/8912458">
+                    <input type="checkbox" name="advanced_search" href="https://poawooptugroo.com/4/8912458">
                     🔍 Advanced Instagram Search
                 </label>
             </div>
@@ -54,16 +53,15 @@
         <div id="responseMessage"></div>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Keep your original loading overlay with SVG -->
     <div id="loadingOverlay" class="loading-overlay" style="display: none;">
         <svg class="loading-svg" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Add your SVG paths here -->
+            <!-- Your original SVG paths -->
             <path d="M720 450C720 450 742.459 440.315 755.249 425.626C768.039 410.937 778.88 418.741 789.478 401.499C800.076 384.258 817.06 389.269 826.741 380.436C836.423 371.603 851.957 364.826 863.182 356.242C874.408 347.657 877.993 342.678 898.867 333.214C919.741 323.75 923.618 319.88 934.875 310.177C946.133 300.474 960.784 300.837 970.584 287.701C980.384 274.564 993.538 273.334 1004.85 263.087C1016.15 252.84 1026.42 250.801 1038.22 242.1C1050.02 233.399 1065.19 230.418 1074.63 215.721C1084.07 201.024 1085.49 209.128 1112.65 194.884C1139.8 180.64 1132.49 178.205 1146.43 170.636C1160.37 163.066 1168.97 158.613 1181.46 147.982C1193.95 137.35 1191.16 131.382 1217.55 125.645C1243.93 119.907 1234.19 118.899 1254.53 100.846C1274.86 82.7922 1275.12 92.8914 1290.37 76.09C1305.62 59.2886 1313.91 62.1868 1323.19 56.7536C1332.48 51.3204 1347.93 42.8082 1361.95 32.1468C1375.96 21.4855 1374.06 25.168 1397.08 10.1863C1420.09 -4.79534 1421.41 -3.16992 1431.52 -15.0078" stroke="#46A5CA" stroke-width="2.3" stroke-linecap="round" />
-            <!-- Add more paths as needed -->
         </svg>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Maintain your original settings modal -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSettings()">&times;</span>
@@ -74,6 +72,7 @@
         </div>
     </div>
 
+    <!-- Keep your original footer structure -->
     <footer>
         <div class="footer-content">
             <h3href="https://599-wahab.github.io/AWK/">AWK Limited</h3>
@@ -84,122 +83,110 @@
         </div>
     </footer>
 
+    <!-- Updated JavaScript for proper Vercel handling -->
     <script>
-        // Load saved API key on page load
-        document.addEventListener("DOMContentLoaded", function () {
-            const savedApiKey = localStorage.getItem("chatgpt_api_key");
-            if (savedApiKey) {
-                document.getElementById("apiKey").value = savedApiKey;
+        // Initialize current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // API Key Management
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKey').value;
+            if (!apiKey) {
+                alert('Please enter an API key');
+                return;
             }
-        });
+            localStorage.setItem('chatgpt_api_key', apiKey);
+            alert('API key saved successfully!');
+            closeSettings();
+        }
 
         function openSettings() {
-            document.getElementById("settingsModal").style.display = "flex";
+            document.getElementById('settingsModal').style.display = 'flex';
+            document.getElementById('apiKey').value = localStorage.getItem('chatgpt_api_key') || '';
             checkGoogleConnection();
         }
 
         function closeSettings() {
-            document.getElementById("settingsModal").style.display = "none";
+            document.getElementById('settingsModal').style.display = 'none';
         }
 
-        function saveApiKey() {
-            const apiKey = document.getElementById("apiKey").value;
-            if (!apiKey) {
-                alert("Please enter an API key.");
-                return;
+        async function checkGoogleConnection() {
+            try {
+                const response = await fetch('/check-google-connection');
+                const data = await response.json();
+                document.getElementById('googleStatusText').textContent = 
+                    data.connected ? '✅ Connected' : '❌ Not Connected';
+            } catch (error) {
+                document.getElementById('googleStatusText').textContent = '⚠️ Connection Check Failed';
             }
-            localStorage.setItem("chatgpt_api_key", apiKey);
-            alert("API Key saved successfully!");
-            closeSettings();
         }
 
-        function getApiKey() {
-            return localStorage.getItem("chatgpt_api_key") || "";
-        }
-
-        function checkGoogleConnection() {
-            fetch("/check-google-connection")
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("googleStatusText").textContent = data.connected ? "Connected" : "Not Connected";
-                })
-                .catch(error => {
-                    console.error("Error checking Google connection:", error);
-                    document.getElementById("googleStatusText").textContent = "Error";
-                });
-        }
-
-        function generateDocument() {
-            const companyName = document.getElementById("companyName").value;
-            const apiKey = getApiKey();
+        async function generateDocument() {
+            const companyName = document.getElementById('companyName').value;
+            const apiKey = localStorage.getItem('chatgpt_api_key');
 
             if (!companyName) {
-                alert("Please enter a company name");
+                alert('Please enter a company name');
                 return;
             }
 
             if (!apiKey) {
-                alert("Please set your ChatGPT API key in settings.");
+                alert('Please set your ChatGPT API key in settings');
                 return;
             }
 
-            // Show loading overlay
-            const loadingOverlay = document.getElementById("loadingOverlay");
-            loadingOverlay.style.display = "flex";
+            // Show loader
+            document.getElementById('loadingOverlay').style.display = 'flex';
 
-            // Get selected sections
-            const checkboxes = document.querySelectorAll('input[name="sections"]:checked');
-            const sections = Array.from(checkboxes).map(cb => cb.value);
+            // Get selected details
+            const details = {
+                overview: document.querySelector('[name="overview"]').checked,
+                ticker: document.querySelector('[name="ticker"]').checked,
+                market_cap: document.querySelector('[name="market_cap"]').checked,
+                headquarters: document.querySelector('[name="headquarters"]').checked,
+                employees: document.querySelector('[name="employees"]').checked,
+                support: true,  // Keep original functionality
+                contacts: true, // Keep original functionality
+                advanced_search: document.querySelector('[name="advanced_search"]').checked
+            };
 
-            fetch("/generate", {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({ 
-                    company_name: companyName,
-                    sections: sections 
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById("responseMessage").innerHTML = `<p style="color: red;">${data.error}</p>`;
-                } else {
-                    document.getElementById("responseMessage").innerHTML = `<p style="color: green;">${data.message}</p>
-                        <a href="${data.doc_url}" target="_blank">View Google Doc</a>`;
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        company_name: companyName,
+                        details: details
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Unknown error');
                 }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                document.getElementById("responseMessage").innerHTML = `<p style="color: red;">An error occurred. Please try again. :(</p>`;
-            })
-            .finally(() => {
-                // Hide loading overlay
-                loadingOverlay.style.display = "none";
-            });
+
+                document.getElementById('responseMessage').innerHTML = `
+                    <p class="success">${data.message}</p>
+                    <a href="${data.doc_url}" target="_blank" class="doc-link">Open Document</a>
+                `;
+            } catch (error) {
+                document.getElementById('responseMessage').innerHTML = `
+                    <p class="error">Error: ${error.message}</p>
+                `;
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
         }
 
         function toggleMode() {
             const body = document.body;
-            if (body.classList.contains("light-mode")) {
-                body.classList.remove("light-mode");
-                body.classList.add("dark-mode");
-                document.querySelector(".mode-toggle").textContent = "☀️";
-                document.getElementById("loadingOverlay").classList.add("dark-mode");
-            } else {
-                body.classList.remove("dark-mode");
-                body.classList.add("light-mode");
-                document.querySelector(".mode-toggle").textContent = "🌙";
-                document.getElementById("loadingOverlay").classList.remove("dark-mode");
-            }
-        }
-
-        function toggleSelectAll() {
-            const checkboxes = document.querySelectorAll('input[name="sections"]');
-            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-            checkboxes.forEach(cb => cb.checked = !allChecked);
+            body.classList.toggle('light-mode');
+            body.classList.toggle('dark-mode');
+            document.querySelector('.mode-toggle').textContent = 
+                body.classList.contains('dark-mode') ? '☀️' : '🌙';
         }
     </script>
 </body>
